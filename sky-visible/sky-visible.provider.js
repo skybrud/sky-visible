@@ -18,7 +18,7 @@
 
 		_this.getDefaults = function() {
 			return _this.defaults;
-		}
+		};
 
 		_this.$get = skyVisible;
 
@@ -54,7 +54,7 @@
 			 * document height is calculated
 			 */
 			function recalculateItems(element) {
-				element = getElement(element);
+				element = element ? getElement(element) : false;
 
 				// Get the window height
 				windowHeight = $window.innerHeight;
@@ -70,6 +70,9 @@
 				}
 
 				function recalculateItem(item) {
+					if(!item) {
+						return;
+					}
 					// If theres a shouldRecalculate method, make sure it returns true
 					if((angular.isFunction(item.shouldRecalculate) && item.shouldRecalculate()) || item.shouldRecalculate === undefined || item.shouldRecalculate ) {
 						item.recalculate();
@@ -87,7 +90,7 @@
 			 * @param {boolean} checkCache [optional]
 			 */
 			function checkItemsViews(element, checkCache) {
-				element = getElement(element);
+				element = element ? getElement(element) : false;
 
 				// Get scroll position
 				var position = {
@@ -135,7 +138,7 @@
 				if(angular.isObject(view)) {
 					method = preferences;
 					preferences = view;
-					view = ''
+					view = '';
 
 				// view and preferences are left out
 				} else if(angular.isFunction(view)) {
@@ -174,7 +177,7 @@
 				// View is left out
 				if(angular.isFunction(view)) {
 					method = view;
-					view = ''
+					view = '';
 				}
 
 				// If no method or view, remove entire item
@@ -198,7 +201,7 @@
 						return item.method !== method;
 					}
 
-					return !(item.method === method && item.view === view)
+					return !(item.method === method && item.view === view);
 				}
 			}
 
@@ -303,6 +306,8 @@
 					dimentions.top = boundingRect.top + scrollPosition.y - document.documentElement.clientTop;
 					dimentions.left = boundingRect.left + scrollPosition.x - document.documentElement.clientLeft;
 					dimentions.boundingClientRect = boundingRect;
+
+					checkViews();
 				}
 
 				/**
@@ -320,6 +325,7 @@
 						var view = method.view;
 						var preferences = method.preferences;
 						var value;
+
 
 						if(views[view] && angular.isFunction(callback)) {
 							// Continue if shouldUpdate function returns fales

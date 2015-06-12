@@ -23,8 +23,8 @@
 		 * Ends: element bottom <= scrollPosition
 		 *
 		 * values:
-		 * 		progress 0-1
-		 * 		distance px
+		 *		progress 0-1
+		 *		distance px
 		 *
 		 * @param {node} element
 		 * @param {object} dimentions - the element dimentions (height, width, top etc..)
@@ -78,8 +78,8 @@
 		 * Ends: element top <= scrollPosition
 		 *
 		 * values:
-		 * 		progress 0-1
-		 * 		distance px
+		 *		progress 0-1
+		 *		distance px
 		 *
 		 * @param {node} element
 		 * @param {object} dimentions - the element dimentions (height, width, top etc..)
