@@ -346,7 +346,7 @@
 								continue;
 							}
 
-							callback.call(element, value);
+							callback.call(element, value, dimentions);
 							method.value = value;
 						}
 					}
