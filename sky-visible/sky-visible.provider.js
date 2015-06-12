@@ -13,7 +13,10 @@
 			foldOffset: true,
 			// Makes sure progress reaches 1 when
 			// bottom of page is reached
-			bottomOffset: true
+			bottomOffset: true,
+			// Caches the value - prevents executing callback
+			// if value is the same
+			cache:true
 		};
 
 		_this.getDefaults = function() {
@@ -342,7 +345,7 @@
 							value = views[view].call(undefined, element, dimentions, scrollPosition, windowHeight, documentHeight, preferences);
 
 							// Continue if nothing changed
-							if(angular.equals(value, method.value)) {
+							if(angular.equals(value, method.value) && preferences.cache) {
 								continue;
 							}
 
