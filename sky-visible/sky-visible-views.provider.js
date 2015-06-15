@@ -23,8 +23,8 @@
 		 * Ends: element bottom <= scrollPosition
 		 *
 		 * values:
-		 * 		progress 0-1
-		 * 		distance px
+		 *		progress 0-1
+		 *		distance px
 		 *
 		 * @param {node} element
 		 * @param {object} dimentions - the element dimentions (height, width, top etc..)
@@ -49,10 +49,10 @@
 			}
 
 			// How far has it moved (px)
-			var distance = Math.min(Math.max(range - (elementOffsetBottom - scrollPosition.y), 0), range);
+			var distance = range - (elementOffsetBottom - scrollPosition.y);
 
 			// The progress in percentage
-			var progress = Math.min(Math.max(distance / range , 0), 1);
+			var progress = distance / range;
 
 			// bottomOffset is a bit like foldOffset, it just makes
 			// sure the progress reaces 1 when bottom of the page is reached
@@ -78,8 +78,8 @@
 		 * Ends: element top <= scrollPosition
 		 *
 		 * values:
-		 * 		progress 0-1
-		 * 		distance px
+		 *		progress 0-1
+		 *		distance px
 		 *
 		 * @param {node} element
 		 * @param {object} dimentions - the element dimentions (height, width, top etc..)
@@ -92,7 +92,7 @@
 		function innerView(element, dimentions, scrollPosition, windowHeight, documentHeight, preferences) {
 
 			// The distance between start and stop
-			var	range = windowHeight - dimentions.height;
+			var	range = dimentions.height < windowHeight ? windowHeight - dimentions.height : dimentions.height;
 
 			// foldOffset makes sure, that even if an element is above the fold,
 			// the progress starts at 0 - it basicly just shortens the range
@@ -101,10 +101,10 @@
 			}
 
 			// How far has it moved (px)
-			var distance = Math.min(Math.max(range - (dimentions.top - scrollPosition.y), 0), range);
+			var distance = range - (dimentions.top - scrollPosition.y);
 
 			// The progress in percentage
-			var progress = Math.min(Math.max(distance / range , 0), 1);
+			var progress = distance / range;
 
 			// bottomOffset is a bit like foldOffset, it just makes
 			// sure the progress reaces 1 when bottom of the page is reached
