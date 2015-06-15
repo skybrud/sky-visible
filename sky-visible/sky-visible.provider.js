@@ -465,15 +465,6 @@
 				return item.node || false;
 			}
 
-			window.skyVisible = {
-				setReference:setReference,
-				getReference:getItem,
-				bind:addMethods,
-				unbind:removeMethods,
-				recalculate:recalculateItems,
-				checkViews:checkItemsViews
-			};
-
 			// Exposes public methods
 			return {
 				setReference:setReference,
