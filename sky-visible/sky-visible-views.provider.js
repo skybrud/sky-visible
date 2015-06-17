@@ -69,7 +69,7 @@
 			// which is passed to the callback function
 			return {
 				progress: progress,
-				distance: distance
+				distance: dimensions.height * progress
 			};
 		}
 
@@ -121,7 +121,7 @@
 			// which is passed to the callback function
 			return {
 				progress: progress,
-				distance: distance
+				distance: range * progress
 			};
 		}
 	}
