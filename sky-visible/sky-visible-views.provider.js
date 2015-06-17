@@ -27,28 +27,28 @@
 		 *		distance px
 		 *
 		 * @param {node} element
-		 * @param {object} dimentions - the element dimentions (height, width, top etc..)
+		 * @param {object} dimensions - the element dimensions (height, width, top etc..)
 		 * @param {object} scrollPosition - the current x and y
 		 * @param {number} windowHeight
 		 * @param {number} documentHeight
 		 * @param {object} preferences - objects passed through, enabling reusing views
 		 * @return {object} - with the progress (%) and distance (px)
 		 */
-		function outerView(element, dimentions, scrollPosition, windowHeight, documentHeight, preferences){
+		function outerView(element, dimensions, scrollPosition, windowHeight, documentHeight, preferences){
 
 			// Bottom position
-			var elementOffsetBottom = dimentions.height + dimentions.top;
+			var elementOffsetBottom = dimensions.height + dimensions.top;
 
 			// The distance between start and stop
-			var range = windowHeight + dimentions.height;
+			var range = windowHeight + dimensions.height;
 
 			// foldOffset makes sure, that even if an element is above the fold,
 			// the progress starts at 0 - it basicly just shortens the range
 			if(preferences.foldOffset) {
-				range -= dimentions.top < windowHeight ? windowHeight - dimentions.top : 0;
+				range -= dimensions.top < windowHeight ? windowHeight - dimensions.top : 0;
 			}
 
-			// How far has it moved (px)
+			// distance traveled (px)
 			var distance = range - (elementOffsetBottom - scrollPosition.y);
 
 			// The progress in percentage
@@ -57,7 +57,7 @@
 			// bottomOffset is a bit like foldOffset, it just makes
 			// sure the progress reaces 1 when bottom of the page is reached
 			if(preferences.bottomOffset) {
-				var bottomOffset = documentHeight - dimentions.top;
+				var bottomOffset = documentHeight - dimensions.top;
 				var multiplier = range/bottomOffset;
 
 				if(bottomOffset < range) {
@@ -82,26 +82,26 @@
 		 *		distance px
 		 *
 		 * @param {node} element
-		 * @param {object} dimentions - the element dimentions (height, width, top etc..)
+		 * @param {object} dimensions - the element dimensions (height, width, top etc..)
 		 * @param {object} scrollPosition - the current x and y
 		 * @param {number} windowHeight
 		 * @param {number} documentHeight
 		 * @param {object} preferences - objects passed through, enabling reusing views
 		 * @return {object} - with the progress (%) and distance (px)
 		 */
-		function innerView(element, dimentions, scrollPosition, windowHeight, documentHeight, preferences) {
+		function innerView(element, dimensions, scrollPosition, windowHeight, documentHeight, preferences) {
 
 			// The distance between start and stop
-			var	range = dimentions.height < windowHeight ? windowHeight - dimentions.height : dimentions.height;
+			var	range = dimensions.height < windowHeight ? windowHeight - dimensions.height : dimensions.height;
 
 			// foldOffset makes sure, that even if an element is above the fold,
 			// the progress starts at 0 - it basicly just shortens the range
 			if(preferences.foldOffset) {
-				range -= dimentions.top < windowHeight ? windowHeight - (dimentions.top + dimentions.height) : 0;
+				range -= dimensions.top < windowHeight ? windowHeight - (dimensions.top + dimensions.height) : 0;
 			}
 
-			// How far has it moved (px)
-			var distance = range - (dimentions.top - scrollPosition.y);
+			// distance travled
+			var distance = range - (dimensions.top - scrollPosition.y);
 
 			// The progress in percentage
 			var progress = distance / range;
@@ -109,7 +109,7 @@
 			// bottomOffset is a bit like foldOffset, it just makes
 			// sure the progress reaces 1 when bottom of the page is reached
 			if(preferences.bottomOffset) {
-				var bottomOffset = documentHeight - (dimentions.top + dimentions.height);
+				var bottomOffset = documentHeight - (dimensions.top + dimensions.height);
 				var multiplier = range/bottomOffset;
 
 				if(bottomOffset < range) {

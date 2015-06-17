@@ -272,7 +272,7 @@
 				// Element properties
 				var boundingRect = element.getBoundingClientRect();
 
-				var dimentions = {
+				var dimensions = {
 					height: element.offsetHeight,
 					width: element.offsetWidth,
 					top: boundingRect.top + scrollPosition.y - document.documentElement.clientTop,
@@ -290,7 +290,7 @@
 
 				item.recalculate = recalculate;
 				item.checkViews = checkViews;
-				item.dimentions = dimentions;
+				item.dimensions = dimensions;
 
 				angular.element(element).on('$destroy skyVisible:unbind', destroy);
 
@@ -304,11 +304,11 @@
 				function recalculate() {
 					boundingRect = element.getBoundingClientRect();
 
-					dimentions.height = element.offsetHeight;
-					dimentions.width = element.offsetWidth;
-					dimentions.top = boundingRect.top + scrollPosition.y - document.documentElement.clientTop;
-					dimentions.left = boundingRect.left + scrollPosition.x - document.documentElement.clientLeft;
-					dimentions.boundingClientRect = boundingRect;
+					dimensions.height = element.offsetHeight;
+					dimensions.width = element.offsetWidth;
+					dimensions.top = boundingRect.top + scrollPosition.y - document.documentElement.clientTop;
+					dimensions.left = boundingRect.left + scrollPosition.x - document.documentElement.clientLeft;
+					dimensions.boundingClientRect = boundingRect;
 
 					checkViews();
 				}
@@ -329,7 +329,6 @@
 						var preferences = method.preferences;
 						var value;
 
-
 						if(views[view] && angular.isFunction(callback)) {
 							// Continue if shouldUpdate function returns fales
 							if(angular.isFunction(preferences.shouldUpdate) && !preferences.shouldUpdate()) {
@@ -342,14 +341,14 @@
 							}
 
 							// Get value
-							value = views[view].call(undefined, element, dimentions, scrollPosition, windowHeight, documentHeight, preferences);
+							value = views[view].call(undefined, element, dimensions, scrollPosition, windowHeight, documentHeight, preferences);
 
 							// Continue if nothing changed
 							if(angular.equals(value, method.value) && preferences.cache) {
 								continue;
 							}
 
-							callback.call(element, value, dimentions);
+							callback.call(element, value, dimensions);
 							method.value = value;
 						}
 					}
