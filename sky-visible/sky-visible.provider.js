@@ -216,7 +216,7 @@
 			 */
 			function getItem(element) {
 				// If angular element or normal element
-				element = element.tagName ? element : element[0];
+				element = typeof element === 'string' || element.tagName ? element : element[0];
 				var index = getItemIndex(element);
 				return items[index];
 			}
