@@ -135,7 +135,7 @@
 			 * @param {function} method
 			 */
 			function addMethods(elements, view, preferences, method) {
-				elements = elements.length !== undefined ? elements : [elements];
+				elements = typeof elements !== 'string' && elements.length !== undefined ? elements : [elements];
 
 				// View is left out
 				if(angular.isObject(view)) {
