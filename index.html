@@ -4,16 +4,6 @@
 	<title>Sky Visible demo</title>
 	<meta charset="utf-8" />
 	<link rel="stylesheet" href="demo.css">
-</head>
-<body ng-app="demo">
-
-
-
-	<div class="item">
-		<div class="inner"></div>
-	</div>
-
-
 
 	<!--Plugins-->
 	<script src="js/angular-1.4.0.js"></script>
@@ -32,5 +22,22 @@
 	<script src="js/sticky.directive.js"></script>
 
 	<script src="js/demo.js"></script>
+</head>
+<body ng-app="demo">
+
+
+	<div class="item" sticky>
+		<div class="inner"></div>
+	</div>
+
+	<div class="item" parallax="inner">
+		<div class="inner"></div>
+	</div>
+
+	<div class="item" parallax="outer">
+		<div class="inner"></div>
+	</div>
+
+
 </body>
 </html>

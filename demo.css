@@ -33,3 +33,6 @@ body {
 	background-color:#8b7758;
 }
 
+[sticky] {
+	transform:translateY(-100px);
+}

@@ -11,6 +11,11 @@
 		};
 
 		function link(scope, element, attrs) {
+			skyVisible.setReference(element, 'stickyElement');
+
+			skyVisible.bind('stickyElement', 'sticky', function(offsetTop) {
+				element.css('top', offsetTop + 'px');
+			});
 		}
 	}
 })();
