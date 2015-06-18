@@ -31,8 +31,8 @@
 
 			// window variables
 			var scrollPosition = {
-				x:$window.pageYOffset,
-				y:$window.pageXOffset
+				x:$window.pageXOffset,
+				y:$window.pageYOffset
 			};
 
 			var windowHeight = $window.innerHeight;
