@@ -15,7 +15,7 @@
 
 			skyVisible.bind(element, view, function(values) {
 				element.children().css({
-					transform:'translateY(' + distance + 'px)'
+					transform:'translateY(' + values.distance + 'px)'
 				});
 			});
 
