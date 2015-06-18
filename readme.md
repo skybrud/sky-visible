@@ -1,3 +1,5 @@
+> _Check out the demo branch!_
+
 # Sky-visible
 `sky-visilbe` is in It's simplest form a service that trackes the progress, of an element, across the viewport. It uses custom methods to calculate where any given element is. This makes it highly cusomizable - and extremly easy to use.
 
