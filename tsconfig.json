@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target":"es5",
+    "declaration":true,
+    "out":"dist/sky-visible.js",
+    "sourceMap": false
+  },
+  "files": [
+    "definitions/angularjs/angular.d.ts",
+    "definitions/jquery/jquery.d.ts",
+    "sky-visible/sky-visible.module.ts",
+	"sky-visible/sky-visible.directive.ts",
+    "sky-visible/sky-visible.provider.ts",
+    "sky-visible/sky-visible-views.provider.ts"
+  ]
+}
