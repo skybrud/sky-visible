@@ -8,11 +8,20 @@
 	function skyVisibleDirective(skyVisible) {
 
 		function link(scope, element, attrs) {
-			scope.$watch(attrs.skyVisiblePreferences, function(preferences) {
+			var preferenceBinding = scope.$watch(attrs.skyVisiblePreferences, function(preferences) {
 				preferences = preferences || {};
 
 				skyVisible.bind(element, preferences);
+				preferenceBinding();
 			});
+
+			var nameBinding = attrs.$observe('skyVisibleReference', function(name) {
+				if(name) {
+					skyVisible.setReference(element[0], name);
+					nameBinding();
+				}
+			});
+
 		}
 
 		return link;
