@@ -1,11 +1,22 @@
+declare module sky {
+	interface ISkyVisibleViewsProvider {
+		views:ISkyVisibleViews;
+		$get():ISkyVisibleViews;
+	}
+	
+	interface ISkyVisibleViews {
+		any:(values: any, dimensions:any) => any;
+	}
+}
+
 (function() {
 	"use strict";
 
-	angular.module('skyVisible').provider('skyVisibleViews', skyVisibleViews);
+	angular.module('skyVisible').provider('skyVisibleViews', skyVisibleViewsProvider);
 
-	skyVisibleViews.$inject = [];
+	skyVisibleViewsProvider.$inject = [];
 
-	function skyVisibleViews() {
+	function skyVisibleViewsProvider():sky.ISkyVisibleViewsProvider {
 		var _this = this;
 
 		// Default views
@@ -14,7 +25,7 @@
 			'inner': innerView
 		};
 
-		_this.$get = function() {
+		this.$get = function():sky.ISkyVisibleViews {
 			return _this.views;
 		};
 
@@ -124,5 +135,7 @@
 				distance: range * progress
 			};
 		}
+
+		return this;
 	}
 })();

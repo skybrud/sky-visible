@@ -1,3 +1,41 @@
+declare module sky {
+	interface ISkyVisibleProvider {
+		defaults:{any:any};
+		getDefaults:()=>any[];
+		$get:ISkyVisible;
+	}
+	
+	interface ISkyVisible {
+		setReference:(element:Element, name:string) => Element;
+		getReference:(name:string) => Element;
+		bind:(element:any, view:any, preferences:any, method:any)=>void;
+		unbind:(element:any)=>void;
+		recalculate:(element?:Element)=>void;
+		checkViews:(element?:Element, checkCache?:boolean)=>void;
+	}
+	
+	interface ISkyVisibleItem {
+		node:Element;
+		methods:ISkyVisbileItemMethods;
+		name?:string;
+	}
+	
+	interface ISkyVisbileItemMethods {
+		[index: number]: ISkyVisbileItemMethod;
+	}
+	
+	interface ISkyVisbileItemMethod {
+		(value:any, dimensions:ISkyVisibleItemDimensions):void;
+	}
+	
+	interface ISkyVisibleItemDimensions {
+		top:number;
+		left:number;
+		width:number;
+		height:number;
+	}
+}
+
 (function() {
 	"use strict";
 
@@ -5,7 +43,7 @@
 
 	skyVisibleProvider.$inject = [];
 
-	function skyVisibleProvider() {
+	function skyVisibleProvider():sky.ISkyVisibleProvider {
 		var _this = this;
 
 		_this.defaults = {
@@ -27,7 +65,7 @@
 
 		skyVisible.$inject = ['skyVisibleViews', '$window'];
 
-		function skyVisible(skyVisibleViews, $window) {
+		function skyVisible(skyVisibleViews, $window):sky.ISkyVisible {
 
 			// window variables
 			var scrollPosition = {
@@ -76,9 +114,22 @@
 					if(!item) {
 						return;
 					}
+					
+					angular.forEach(item.methods, function(method) {
+						if(method.preferences && method.preferences.flush) {
+							delete method.value;
+						}
+						
+						if(method.preferences && angular.isFunction(method.preferences.beforeRecalculate)) {
+							method.preferences.beforeRecalculate.apply(item.node);
+						}
+					});
+					
 					// If theres a shouldRecalculate method, make sure it returns true
 					if((angular.isFunction(item.shouldRecalculate) && item.shouldRecalculate()) || item.shouldRecalculate === undefined || item.shouldRecalculate ) {
-						item.recalculate();
+						if(typeof item.recalculate === 'function') {
+							item.recalculate();
+						}
 					}
 				}
 			}
@@ -92,7 +143,7 @@
 			 * @param {node} element [optional]
 			 * @param {boolean} checkCache [optional]
 			 */
-			function checkItemsViews(element, checkCache) {
+			function checkItemsViews(element?:Element, checkCache?:boolean) {
 				element = element ? getElement(element) : false;
 
 				// Get scroll position
@@ -108,6 +159,11 @@
 					angular.extend(scrollPosition, position);
 				}
 
+				// Dont check views if scroll beyond screen
+				if(scrollPosition.y < 0 || scrollPosition.x < 0) {
+					return;
+				}
+
 				if(element) {
 					checkItemViews(getItem(element));
 					return;
@@ -120,7 +176,9 @@
 				function checkItemViews(item) {
 					// If theres a shouldUpdate method, make sure it returns true
 					if((angular.isFunction(item.shouldUpdate) && item.shouldUpdate()) || item.shouldUpdate === undefined || item.shouldUpdate) {
-						item.checkViews();
+						if(typeof item.checkViews === 'function') {
+							item.checkViews(true);
+						}
 					}
 				}
 			}
@@ -134,8 +192,8 @@
 			 * @param {object} preferences [optional]
 			 * @param {function} method
 			 */
-			function addMethods(elements, view, preferences, method) {
-				elements = typeof elements !== 'string' && elements.length !== undefined ? elements : [elements];
+			function addMethods(elements:any, view?:any, preferences?:any, method?:any):void {
+				elements = angular.isArray(elements) ? elements : [elements];
 
 				// View is left out
 				if(angular.isObject(view)) {
@@ -158,13 +216,51 @@
 				for (var i = 0; i < elements.length; i++) {
 					var element = getElement(elements[i]);
 
-					var item = addMethod(element, view, preferences, method, name);
-
-					// If first - init item
-					if(item.methods.length === 1 && angular.equals(item.methods[0].method, method)) {
-						itemSetup(element);
-					}
+					addMethod(element, view, preferences, method);
 				}
+
+				// Assume other elements affected
+				checkItemsViews();
+			}
+
+			/**
+			 * Adds a method to an item. The element is used to finde
+			 * the specific item - if non found it will create one
+			 *
+			 * The used item will be returned
+			 *
+			 * @param {node} element
+			 * @param {string} view [outer]
+			 * @param {object} preferences
+			 * @param {function} method
+			 * @return {object}
+			 */
+			function addMethod(element, view, preferences, method) {
+				// The element item
+				var item = addItem(element);
+
+				view = view || 'outer';
+				preferences = angular.extend({}, defaults, (preferences || {}));
+
+				// Add a view if givin
+				// Adds to array of views
+				if(item.methods.length) {
+					item.methods.push({
+						view:view,
+						method:method,
+						preferences:preferences
+					});
+					// Creates an array of views
+				} else {
+					item.methods = [{
+						view:view,
+						method:method,
+						preferences:preferences,
+
+					}];
+				}
+
+				return item;
 			}
 
 			/**
@@ -174,7 +270,7 @@
 			 * @param {string} view
 			 * @param {function} method
 			 */
-			function removeMethods(elements, view, method) {
+			function removeMethods(elements:any, view?:any, method?:any):void {
 				elements = elements.length !== undefined ? elements : [elements];
 
 				// View is left out
@@ -214,9 +310,9 @@
 			 * @param {node} element
 			 * @return {object}
 			 */
-			function getItem(element) {
+			function getItem(element:any) {
 				// If angular element or normal element
-				element = typeof element === 'string' || element.tagName ? element : element[0];
+				element = getElement(element);
 				var index = getItemIndex(element);
 				return items[index];
 			}
@@ -228,7 +324,7 @@
 			 * @param {node} element
 			 * @return {object}
 			 */
-			function addItem(element) {
+			function addItem(element, name?:string) {
 				element = getElement(element);
 
 				var index = getItemIndex(element);
@@ -239,6 +335,26 @@
 						node: element,
 						methods: []
 					});
+
+
+					// Added as reference
+					if(angular.isString(element)) {
+						items[index].name = element;
+
+					// Added as element
+					} else {
+						items[index].node = element;
+						itemSetup(element);
+					}
+
+				// Added as references before element
+				} else if(!items[index].node && element instanceof Element) {
+					items[index].node = element;
+					itemSetup(element);
+				}
+
+				if(name) {
+					items[index].name = name;
 				}
 
 				return items[index];
@@ -294,9 +410,6 @@
 
 				angular.element(element).on('$destroy skyVisible:unbind', destroy);
 
-				// Assume other elements affected
-				checkItemsViews();
-
 				/**
 				 * Recalculates variables
 				 * Function added to onResize
@@ -317,8 +430,10 @@
 				 * Checks rather the element is visible in the defined
 				 * views. It will then loop over them and dispatch an event
 				 * with the given values
+				 *
+				 * @param {boolean} flush - skip cache
 				 */
-				function checkViews()  {
+				function checkViews(flush?:boolean)  {
 					var element = item.node;
 					var methods = item.methods;
 
@@ -344,11 +459,10 @@
 							value = views[view].call(undefined, element, dimensions, scrollPosition, windowHeight, documentHeight, preferences);
 
 							// Continue if nothing changed
-							if(angular.equals(value, method.value) && preferences.cache) {
+							if((angular.equals(value, method.value) && preferences.cache) || !flush) {
 								continue;
 							}
-
-							callback.call(element, value, dimensions);
+							callback.call(element, value, dimensions, scrollPosition);
 							method.value = value;
 						}
 					}
@@ -367,10 +481,10 @@
 			 * Get the index of an item, that
 			 * has a giving element
 			 *
-			 * @param {node} element
+			 * @param {node|string} element
 			 * @return {number}
 			 */
-			function getItemIndex(element) {
+			function getItemIndex(element:Element|string):number {
 				var index = -1;
 				for (var i = 0; i < items.length; i++) {
 					var item = items[i];
@@ -392,60 +506,23 @@
 			/**
 			 * Get an element from the items list
 			 *
-			 * @param {node} element
-			 * @return {node}
+			 * @param {DOMElement|string} element - the element or string
+			 * @return {DOMElement|boolean} - if nothing found false is returned
 			 */
-			function getElement(element) {
-				// String -> getItem -> node
-				// Element -> element
-				// defined -> element[0]
-				// element
-				return angular.isString(element) ? getItem(element).node : element instanceof Element ? element : element !== undefined ? element[0] : element;
-			}
-
-			/**
-			 * Adds a method to an item. The element is used to finde
-			 * the specific item - if non found it will create one
-			 *
-			 * The used item will be returned
-			 *
-			 * @param {node} element
-			 * @param {string} view [outer]
-			 * @param {object} preferences
-			 * @param {function} method
-			 * @return {object}
-			 */
-			function addMethod(element, view, preferences, method) {
-				view = view || 'outer';
-
-				preferences =  angular.extend({}, defaults, (preferences || {}));
-
-				// If element already added
-				var index = getItemIndex(element);
-
-				var exists = index !== -1;
-
-				// The element item
-				var item = addItem(element);
-
-				// Add a view if givin
-				// Adds to array of views
-				if(item.methods.length) {
-					item.methods.push({
-						view:view,
-						method:method,
-						preferences:preferences
-					});
-					// Creates an array of views
-				} else {
-					item.methods = [{
-						view:view,
-						method:method,
-						preferences:preferences
-					}];
+			function getElement(element:Element|string) {
+				if(element instanceof Element) {
+					return element;
 				}
 
-				return item;
+				if(angular.isElement(element)) {
+					return element[0];
+				}
+
+				if(angular.isArray(element)) {
+					return element[0];
+				}
+
+				return element;
 			}
 
 			/**
@@ -456,9 +533,17 @@
 			 * @param {string} name
 			 * @return {object}
 			 */
-			function setReference(element, name) {
-				var item = addItem(element);
-				item.name = name;
+			function setReference(element:Element, name:string) {
+				var reference = getItem(name);
+
+				var item = addItem(element, name);
+
+				// Merge reference methods
+				if(reference) {
+					item.methods = item.methods.concat(reference.methods);
+					delete items.splice(getItemIndex(name), 1);
+				}
+
 				return item;
 			}
 
@@ -468,7 +553,7 @@
 			 * @param {string} name
 			 * @return {object|boolean}
 			 */
-			function getReference(name) {
+			function getReference(name:string) {
 				var item = getItem(name) || {};
 				return item.node || false;
 			}
@@ -485,5 +570,7 @@
 				checkViews:checkItemsViews
 			};
 		}
+
+		return this;
 	}
 })();
