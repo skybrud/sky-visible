@@ -4,7 +4,7 @@ declare module sky {
 		getDefaults:()=>any[];
 		$get:ISkyVisible;
 	}
-	
+
 	interface ISkyVisible {
 		setReference:(element:Element, name:string) => Element;
 		getReference:(name:string) => Element;
@@ -13,21 +13,21 @@ declare module sky {
 		recalculate:(element?:Element)=>void;
 		checkViews:(element?:Element, checkCache?:boolean)=>void;
 	}
-	
+
 	interface ISkyVisibleItem {
 		node:Element;
 		methods:ISkyVisbileItemMethods;
 		name?:string;
 	}
-	
+
 	interface ISkyVisbileItemMethods {
 		[index: number]: ISkyVisbileItemMethod;
 	}
-	
+
 	interface ISkyVisbileItemMethod {
 		(value:any, dimensions:ISkyVisibleItemDimensions):void;
 	}
-	
+
 	interface ISkyVisibleItemDimensions {
 		top:number;
 		left:number;
@@ -101,6 +101,8 @@ declare module sky {
 				windowHeight = $window.innerHeight;
 				documentHeight = Math.max(document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight);
 
+
+
 				if(element) {
 					recalculateItem(getItem(element));
 					return;
@@ -114,17 +116,20 @@ declare module sky {
 					if(!item) {
 						return;
 					}
-					
+
 					angular.forEach(item.methods, function(method) {
+						// Clear all save method valyes
+						// if `flush` preference true
 						if(method.preferences && method.preferences.flush) {
 							delete method.value;
 						}
-						
-						if(method.preferences && angular.isFunction(method.preferences.beforeRecalculate)) {
-							method.preferences.beforeRecalculate.apply(item.node);
+
+						// If recalculate method specified - fire it
+						if(method.preferences && angular.isFunction(method.preferences.recalculate)) {
+							method.preferences.recalculate.apply(item.node);
 						}
 					});
-					
+
 					// If theres a shouldRecalculate method, make sure it returns true
 					if((angular.isFunction(item.shouldRecalculate) && item.shouldRecalculate()) || item.shouldRecalculate === undefined || item.shouldRecalculate ) {
 						if(typeof item.recalculate === 'function') {
@@ -332,8 +337,7 @@ declare module sky {
 				// Add to items and store item
 				if(index === -1) {
 					index = -1 + items.push({
-						node: element,
-						methods: []
+						methods: [],
 					});
 
 
