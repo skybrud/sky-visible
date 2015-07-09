@@ -15,7 +15,7 @@
 				preferenceBinding();
 			});
 
-			var nameBinding = attrs.$observe('skyVisibleReference', function(name) {
+			var nameBinding = attrs.$observe('skyVisibleName', function(name) {
 				if(name) {
 					skyVisible.setReference(element[0], name);
 					nameBinding();
