@@ -426,8 +426,8 @@ declare module sky {
 				function recalculate() {
 					boundingRect = element.getBoundingClientRect();
 
-					dimensions.height = element.offsetHeight;
-					dimensions.width = element.offsetWidth;
+					dimensions.height = boundingRect.height ? boundingRect.height : element.offsetHeight;
+					dimensions.width = boundingRect.width ? boundingRect.width : element.offsetWidth;
 					dimensions.top = boundingRect.top + scrollPosition.y - document.documentElement.clientTop;
 					dimensions.left = boundingRect.left + scrollPosition.x - document.documentElement.clientLeft;
 					dimensions.boundingClientRect = boundingRect;
