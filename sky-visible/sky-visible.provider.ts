@@ -567,6 +567,19 @@ declare module sky {
 				return item.node || false;
 			}
 
+			/**
+			 * Return the dimensions object based
+			 * on the an element or reference name
+			 *
+			 * @param {node|string}
+			 * @return {object}
+			 */
+			function getDimensions(element:Element|string):sky.ISkyVisibleItemDimensions {
+				var item = getItem(element);
+
+				return item.dimensions || {};
+			}
+
 			// Exposes public methods
 			return {
 				setReference:setReference,
@@ -576,7 +589,9 @@ declare module sky {
 				unbind:removeMethods,
 
 				recalculate:recalculateItems,
-				checkViews:checkItemsViews
+				checkViews:checkItemsViews,
+
+				getDimensions:getDimensions
 			};
 		}
 
