@@ -127,6 +127,7 @@ declare module sky {
 						// If recalculate method specified - fire it
 						if(method.preferences && angular.isFunction(method.preferences.recalculate)) {
 							method.preferences.recalculate.apply(item.node);
+							checkItemsViews(item.node);
 						}
 					});
 
