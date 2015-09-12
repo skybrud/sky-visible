@@ -70,7 +70,9 @@ declare module sky {
 			// window variables
 			var scrollPosition = {
 				x:$window.pageXOffset,
-				y:$window.pageYOffset
+				y:$window.pageYOffset,
+				deltaY:0,
+				deltaX:0
 			};
 
 			var windowHeight = $window.innerHeight;
@@ -100,8 +102,6 @@ declare module sky {
 				// Get the window height
 				windowHeight = $window.innerHeight;
 				documentHeight = Math.max(document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight);
-
-
 
 				if(element) {
 					recalculateItem(getItem(element));
@@ -151,6 +151,7 @@ declare module sky {
 			function checkItemsViews(element?:Element, checkCache?:boolean) {
 				element = element ? getElement(element) : false;
 
+
 				// Get scroll position
 				var position = {
 					y: $window.pageYOffset,
@@ -161,7 +162,10 @@ declare module sky {
 				if(angular.equals(position, scrollPosition) && checkCache) {
 					return;
 				} else {
-					angular.extend(scrollPosition, position);
+					scrollPosition.deltaY = position.y - scrollPosition.y;
+					scrollPosition.deltaX = position.x - scrollPosition.x;
+					scrollPosition.y = position.y;
+					scrollPosition.x = position.x;
 				}
 
 				// Dont check views if scroll beyond screen
