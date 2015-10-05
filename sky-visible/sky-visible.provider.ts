@@ -160,7 +160,7 @@ declare module sky {
 				};
 
 				// Prevent running methods if position not changed
-				if(angular.equals(position, scrollPosition) && checkCache) {
+				if(position.y === scrollPosition.y && position.x === scrollPosition.x && checkCache) {
 					return;
 				} else {
 					scrollPosition.deltaY = position.y - scrollPosition.y;
