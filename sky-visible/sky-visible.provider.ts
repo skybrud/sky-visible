@@ -149,9 +149,8 @@ declare module sky {
 			 * @param {node} element [optional]
 			 * @param {boolean} checkCache [optional]
 			 */
-			function checkItemsViews(element?:Element, checkCache?:boolean) {
+			function checkItemsViews(element?:Element, checkCache:boolean = true) {
 				element = element ? getElement(element) : false;
-
 
 				// Get scroll position
 				var position = {
@@ -163,8 +162,14 @@ declare module sky {
 				if(position.y === scrollPosition.y && position.x === scrollPosition.x && checkCache) {
 					return;
 				} else {
+					if(scrollPosition.y !== position.y) {
 					scrollPosition.deltaY = position.y - scrollPosition.y;
+					}
+
+					if(scrollPosition.x !== position.x) {
 					scrollPosition.deltaX = position.x - scrollPosition.x;
+					}
+
 					scrollPosition.y = position.y;
 					scrollPosition.x = position.x;
 				}
@@ -184,14 +189,11 @@ declare module sky {
 				}
 
 				function checkItemViews(item) {
-					// If theres a shouldUpdate method, make sure it returns true
-					if((angular.isFunction(item.shouldUpdate) && item.shouldUpdate()) || item.shouldUpdate === undefined || item.shouldUpdate) {
 						if(typeof item.checkViews === 'function') {
 							item.checkViews(true);
 						}
 					}
 				}
-			}
 
 			/**
 			 * Public method that adds methods to a view, for
@@ -455,7 +457,7 @@ declare module sky {
 
 						if(views[view] && angular.isFunction(callback)) {
 							// Continue if shouldUpdate function returns fales
-							if(angular.isFunction(preferences.shouldUpdate) && !preferences.shouldUpdate()) {
+							if(angular.isFunction(preferences.shouldUpdate) && !preferences.shouldUpdate.call(element, dimensions, scrollPosition)) {
 								continue;
 							}
 
