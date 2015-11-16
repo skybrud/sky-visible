@@ -54,7 +54,9 @@ declare module sky {
 			bottomOffset: true,
 			// Caches the value - prevents executing callback
 			// if value is the same
-			cache:true
+			cache:true,
+			// Cap progress between 0 and 1
+			cap:true,
 		};
 
 		_this.getDefaults = function() {
