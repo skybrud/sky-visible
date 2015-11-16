@@ -75,6 +75,10 @@ declare module sky {
 					progress *= multiplier;
 				}
 			}
+			
+			if(preferences.cap) {
+				progress = Math.min(Math.max(progress, 0), 1);
+			}
 
 			// Returns an object, with distance and progress,
 			// which is passed to the callback function
@@ -103,16 +107,16 @@ declare module sky {
 		function innerView(element, dimensions, scrollPosition, windowHeight, documentHeight, preferences) {
 
 			// The distance between start and stop
-			var	range = dimensions.height < windowHeight ? windowHeight - dimensions.height : dimensions.height;
+			var	range = dimensions.height < windowHeight ? windowHeight - dimensions.height : dimensions.height - windowHeight;
 
 			// foldOffset makes sure, that even if an element is above the fold,
 			// the progress starts at 0 - it basicly just shortens the range
 			if(preferences.foldOffset) {
-				range -= dimensions.top < windowHeight ? windowHeight - (dimensions.top + dimensions.height) : 0;
+				range -= (dimensions.top + dimensions.height < windowHeight) ? windowHeight - (dimensions.top + dimensions.height) : 0;
 			}
 
 			// distance travled
-			var distance = range - (dimensions.top - scrollPosition.y);
+			var distance = (dimensions.height < windowHeight) ? range - (dimensions.top - scrollPosition.y) : scrollPosition.y - dimensions.top;
 
 			// The progress in percentage
 			var progress = distance / range;
@@ -126,6 +130,10 @@ declare module sky {
 				if(bottomOffset < range) {
 					progress *= multiplier;
 				}
+			}
+
+			if(preferences.cap) {
+				progress = Math.min(Math.max(progress, 0), 1);
 			}
 
 			// Returns an object, with distance and progress,
