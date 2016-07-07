@@ -65,9 +65,9 @@ declare module sky {
 
 		_this.$get = skyVisible;
 
-		skyVisible.$inject = ['skyVisibleViews', '$window'];
+		skyVisible.$inject = ['skyVisibleViews', '$window', 'isIOS'];
 
-		function skyVisible(skyVisibleViews, $window):sky.ISkyVisible {
+		function skyVisible(skyVisibleViews, $window, isIOS) {
 
 			// window variables
 			var scrollPosition = {
@@ -91,6 +91,9 @@ declare module sky {
 			// Default view preferences
 			var defaults = _this.getDefaults();
 
+			// Debounce variable for refresh timeout
+			var refreshDebounce;
+
 			/**
 			 * Runs on resize debounce.
 			 * Iterates through onResizeMethods
@@ -99,11 +102,16 @@ declare module sky {
 			 * document height is calculated
 			 */
 			function recalculateItems(element) {
+				
 				element = element ? getElement(element) : false;
 
 				// Get the window height
 				windowHeight = $window.innerHeight;
 				documentHeight = Math.max(document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight);
+
+				if(isIOS) {
+					windowHeight += 50;
+				}
 
 				if(element) {
 					recalculateItem(getItem(element));
@@ -143,6 +151,31 @@ declare module sky {
 			}
 
 			/**
+			 * Convenience method for calling both recalculateItems and
+			 * checkItemViews
+			 *
+			 * Has an optional debounce.
+			 *
+			 * @param {number|boolean} debounce [optional]
+			 */
+			function recalculateAndCheckItems(debounce:number|boolean = false) {
+
+				if (debounce === false) {
+					// If no debounce, refresh immediately
+					recalculateAndCheckItemsMethod();
+				} else {
+					// Debounce
+					clearTimeout(refreshDebounce);
+					refreshDebounce = setTimeout(recalculateAndCheckItemsMethod, debounce);
+				}
+
+				function recalculateAndCheckItemsMethod() {
+					recalculateItems(false);
+					checkItemsViews(null, false);
+				}
+			}
+
+			/**
 			 * Runs through all methods in onScrollMethods
 			 *
 			 * Makes sure the methods are only run after the scroll
@@ -157,7 +190,7 @@ declare module sky {
 				// Get scroll position
 				var position = {
 					y: $window.pageYOffset,
-					x: $window.pageXOffset
+					x: 0//$window.pageXOffset
 				};
 
 				// Prevent running methods if position not changed
@@ -182,13 +215,17 @@ declare module sky {
 				}
 
 				if(element) {
-					checkItemViews(getItem(element));
+					window.requestAnimationFrame(function() {
+						checkItemViews(getItem(element));
+					});
 					return;
 				}
 
-				for (var i = 0; i < items.length; i++) {
-					checkItemViews(items[i]);
-				}
+				window.requestAnimationFrame(function() {
+					for (var i = 0; i < items.length; i++) {
+						checkItemViews(items[i]);
+					}
+				});
 
 				function checkItemViews(item) {
 						if(typeof item.checkViews === 'function') {
@@ -592,6 +629,7 @@ declare module sky {
 				bind:addMethods,
 				unbind:removeMethods,
 
+				refresh:recalculateAndCheckItems,
 				recalculate:recalculateItems,
 				checkViews:checkItemsViews,
 

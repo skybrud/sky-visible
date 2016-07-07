@@ -1,25 +1,6 @@
 (function () {
     "use strict";
     angular.module('skyVisible', []);
-    angular.module('skyVisible').run(run);
-    run.$inject = ['skyVisible', '$window'];
-    // Configure when to recalculate
-    function run(skyVisible, $window) {
-        // Window resize event debounce
-        var resizeDebounce;
-        // Bind events to window
-        angular.element($window).on('scroll', function () {
-            skyVisible.checkViews(false, true);
-        });
-        // Recalculate with a 300ms debounce
-        angular.element($window).on('resize', function () {
-            clearTimeout(resizeDebounce);
-            resizeDebounce = setTimeout(function () {
-                skyVisible.recalculate();
-                skyVisible.checkViews();
-            }, 300);
-        });
-    }
 })();
 (function () {
     "use strict";
@@ -32,7 +13,7 @@
                 skyVisible.bind(element, preferences);
                 preferenceBinding();
             });
-            var nameBinding = attrs.$observe('skyVisibleReference', function (name) {
+            var nameBinding = attrs.$observe('skyVisibleName', function (name) {
                 if (name) {
                     skyVisible.setReference(element[0], name);
                     nameBinding();
@@ -56,18 +37,22 @@
             bottomOffset: true,
             // Caches the value - prevents executing callback
             // if value is the same
-            cache: true
+            cache: true,
+            // Cap progress between 0 and 1
+            cap: true,
         };
         _this.getDefaults = function () {
             return _this.defaults;
         };
         _this.$get = skyVisible;
-        skyVisible.$inject = ['skyVisibleViews', '$window'];
-        function skyVisible(skyVisibleViews, $window) {
+        skyVisible.$inject = ['skyVisibleViews', '$window', 'isIOS'];
+        function skyVisible(skyVisibleViews, $window, isIOS) {
             // window variables
             var scrollPosition = {
                 x: $window.pageXOffset,
-                y: $window.pageYOffset
+                y: $window.pageYOffset,
+                deltaY: 0,
+                deltaX: 0
             };
             var windowHeight = $window.innerHeight;
             // Get the document height - assume it's the highest number
@@ -78,6 +63,8 @@
             var views = skyVisibleViews;
             // Default view preferences
             var defaults = _this.getDefaults();
+            // Debounce variable for refresh timeout
+            var refreshDebounce;
             /**
              * Runs on resize debounce.
              * Iterates through onResizeMethods
@@ -90,6 +77,9 @@
                 // Get the window height
                 windowHeight = $window.innerHeight;
                 documentHeight = Math.max(document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight);
+                if (isIOS) {
+                    windowHeight += 50;
+                }
                 if (element) {
                     recalculateItem(getItem(element));
                     return;
@@ -102,11 +92,15 @@
                         return;
                     }
                     angular.forEach(item.methods, function (method) {
+                        // Clear all save method valyes
+                        // if `flush` preference true
                         if (method.preferences && method.preferences.flush) {
                             delete method.value;
                         }
-                        if (method.preferences && angular.isFunction(method.preferences.beforeRecalculate)) {
-                            method.preferences.beforeRecalculate.apply(item.node);
+                        // If recalculate method specified - fire it
+                        if (method.preferences && angular.isFunction(method.preferences.recalculate)) {
+                            method.preferences.recalculate.apply(item.node);
+                            checkItemsViews(item.node);
                         }
                     });
                     // If theres a shouldRecalculate method, make sure it returns true
@@ -115,6 +109,30 @@
                             item.recalculate();
                         }
                     }
+                }
+            }
+            /**
+             * Convenience method for calling both recalculateItems and
+             * checkItemViews
+             *
+             * Has an optional debounce.
+             *
+             * @param {number|boolean} debounce [optional]
+             */
+            function recalculateAndCheckItems(debounce) {
+                if (debounce === void 0) { debounce = false; }
+                if (debounce === false) {
+                    // If no debounce, refresh immediately
+                    recalculateAndCheckItemsMethod();
+                }
+                else {
+                    // Debounce
+                    clearTimeout(refreshDebounce);
+                    refreshDebounce = setTimeout(recalculateAndCheckItemsMethod, debounce);
+                }
+                function recalculateAndCheckItemsMethod() {
+                    recalculateItems(false);
+                    checkItemsViews(null, false);
                 }
             }
             /**
@@ -127,36 +145,45 @@
              * @param {boolean} checkCache [optional]
              */
             function checkItemsViews(element, checkCache) {
+                if (checkCache === void 0) { checkCache = true; }
                 element = element ? getElement(element) : false;
                 // Get scroll position
                 var position = {
                     y: $window.pageYOffset,
-                    x: $window.pageXOffset
+                    x: 0 //$window.pageXOffset
                 };
                 // Prevent running methods if position not changed
-                if (angular.equals(position, scrollPosition) && checkCache) {
+                if (position.y === scrollPosition.y && position.x === scrollPosition.x && checkCache) {
                     return;
                 }
                 else {
-                    angular.extend(scrollPosition, position);
+                    if (scrollPosition.y !== position.y) {
+                        scrollPosition.deltaY = position.y - scrollPosition.y;
+                    }
+                    if (scrollPosition.x !== position.x) {
+                        scrollPosition.deltaX = position.x - scrollPosition.x;
+                    }
+                    scrollPosition.y = position.y;
+                    scrollPosition.x = position.x;
                 }
                 // Dont check views if scroll beyond screen
                 if (scrollPosition.y < 0 || scrollPosition.x < 0) {
                     return;
                 }
                 if (element) {
-                    checkItemViews(getItem(element));
+                    window.requestAnimationFrame(function () {
+                        checkItemViews(getItem(element));
+                    });
                     return;
                 }
-                for (var i = 0; i < items.length; i++) {
-                    checkItemViews(items[i]);
-                }
+                window.requestAnimationFrame(function () {
+                    for (var i = 0; i < items.length; i++) {
+                        checkItemViews(items[i]);
+                    }
+                });
                 function checkItemViews(item) {
-                    // If theres a shouldUpdate method, make sure it returns true
-                    if ((angular.isFunction(item.shouldUpdate) && item.shouldUpdate()) || item.shouldUpdate === undefined || item.shouldUpdate) {
-                        if (typeof item.checkViews === 'function') {
-                            item.checkViews(true);
-                        }
+                    if (typeof item.checkViews === 'function') {
+                        item.checkViews(true);
                     }
                 }
             }
@@ -288,8 +315,7 @@
                 // Add to items and store item
                 if (index === -1) {
                     index = -1 + items.push({
-                        node: element,
-                        methods: []
+                        methods: [],
                     });
                     // Added as reference
                     if (angular.isString(element)) {
@@ -355,8 +381,8 @@
                  */
                 function recalculate() {
                     boundingRect = element.getBoundingClientRect();
-                    dimensions.height = element.offsetHeight;
-                    dimensions.width = element.offsetWidth;
+                    dimensions.height = boundingRect.height ? boundingRect.height : element.offsetHeight;
+                    dimensions.width = boundingRect.width ? boundingRect.width : element.offsetWidth;
                     dimensions.top = boundingRect.top + scrollPosition.y - document.documentElement.clientTop;
                     dimensions.left = boundingRect.left + scrollPosition.x - document.documentElement.clientLeft;
                     dimensions.boundingClientRect = boundingRect;
@@ -380,7 +406,7 @@
                         var value;
                         if (views[view] && angular.isFunction(callback)) {
                             // Continue if shouldUpdate function returns fales
-                            if (angular.isFunction(preferences.shouldUpdate) && !preferences.shouldUpdate()) {
+                            if (angular.isFunction(preferences.shouldUpdate) && !preferences.shouldUpdate.call(element, dimensions, scrollPosition)) {
                                 continue;
                             }
                             // Continue if shouldUpdate is falsy, without being undefined
@@ -474,14 +500,27 @@
                 var item = getItem(name) || {};
                 return item.node || false;
             }
+            /**
+             * Return the dimensions object based
+             * on the an element or reference name
+             *
+             * @param {node|string}
+             * @return {object}
+             */
+            function getDimensions(element) {
+                var item = getItem(element);
+                return item.dimensions || {};
+            }
             // Exposes public methods
             return {
                 setReference: setReference,
                 getReference: getItem,
                 bind: addMethods,
                 unbind: removeMethods,
+                refresh: recalculateAndCheckItems,
                 recalculate: recalculateItems,
-                checkViews: checkItemsViews
+                checkViews: checkItemsViews,
+                getDimensions: getDimensions
             };
         }
         return this;
@@ -540,6 +579,9 @@
                     progress *= multiplier;
                 }
             }
+            if (preferences.cap) {
+                progress = Math.min(Math.max(progress, 0), 1);
+            }
             // Returns an object, with distance and progress,
             // which is passed to the callback function
             return {
@@ -565,14 +607,14 @@
          */
         function innerView(element, dimensions, scrollPosition, windowHeight, documentHeight, preferences) {
             // The distance between start and stop
-            var range = dimensions.height < windowHeight ? windowHeight - dimensions.height : dimensions.height;
+            var range = dimensions.height < windowHeight ? windowHeight - dimensions.height : dimensions.height - windowHeight;
             // foldOffset makes sure, that even if an element is above the fold,
             // the progress starts at 0 - it basicly just shortens the range
             if (preferences.foldOffset) {
-                range -= dimensions.top < windowHeight ? windowHeight - (dimensions.top + dimensions.height) : 0;
+                range -= (dimensions.top + dimensions.height < windowHeight) ? windowHeight - (dimensions.top + dimensions.height) : 0;
             }
             // distance travled
-            var distance = range - (dimensions.top - scrollPosition.y);
+            var distance = (dimensions.height < windowHeight) ? range - (dimensions.top - scrollPosition.y) : scrollPosition.y - dimensions.top;
             // The progress in percentage
             var progress = distance / range;
             // bottomOffset is a bit like foldOffset, it just makes
@@ -583,6 +625,9 @@
                 if (bottomOffset < range) {
                     progress *= multiplier;
                 }
+            }
+            if (preferences.cap) {
+                progress = Math.min(Math.max(progress, 0), 1);
             }
             // Returns an object, with distance and progress,
             // which is passed to the callback function
