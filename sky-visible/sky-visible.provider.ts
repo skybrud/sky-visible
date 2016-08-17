@@ -136,7 +136,7 @@ declare module sky {
 
 						// If recalculate method specified - fire it
 						if(method.preferences && angular.isFunction(method.preferences.recalculate)) {
-							method.preferences.recalculate.apply(item.node);
+							method.preferences.recalculate.apply(item.node, [item.dimensions, scrollPosition, windowHeight]);
 							checkItemsViews(item.node);
 						}
 					});
@@ -144,7 +144,7 @@ declare module sky {
 					// If theres a shouldRecalculate method, make sure it returns true
 					if((angular.isFunction(item.shouldRecalculate) && item.shouldRecalculate()) || item.shouldRecalculate === undefined || item.shouldRecalculate ) {
 						if(typeof item.recalculate === 'function') {
-							item.recalculate();
+							item.recalculate(item.dimensions, scrollPosition, windowHeight);
 						}
 					}
 				}
