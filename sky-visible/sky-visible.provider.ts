@@ -93,7 +93,7 @@ declare module sky {
 
 			// Debounce variable for refresh timeout
 			var refreshDebounce;
-
+			
 			/**
 			 * Runs on resize debounce.
 			 * Iterates through onResizeMethods
@@ -190,7 +190,7 @@ declare module sky {
 				// Get scroll position
 				var position = {
 					y: $window.pageYOffset,
-					x: 0//$window.pageXOffset
+					x: $window.pageXOffset
 				};
 
 				// Prevent running methods if position not changed
