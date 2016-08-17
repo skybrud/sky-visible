@@ -215,22 +215,18 @@ declare module sky {
 				}
 
 				if(element) {
-					window.requestAnimationFrame(function() {
-						checkItemViews(getItem(element));
-					});
+					checkItemViews(getItem(element));
 					return;
 				}
 
-				window.requestAnimationFrame(function() {
-					for (var i = 0; i < items.length; i++) {
-						checkItemViews(items[i]);
-					}
-				});
+				for (var i = items.length; i--;) {
+					checkItemViews(items[i]);
+				}
 
 				function checkItemViews(item) {
-						if(typeof item.checkViews === 'function') {
-							item.checkViews(true);
-						}
+					if(typeof item.checkViews === 'function') {
+						item.checkViews(true);
+					}
 					}
 				}
 
