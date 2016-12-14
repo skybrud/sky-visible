@@ -93,7 +93,7 @@ declare module sky {
 
 			// Debounce variable for refresh timeout
 			var refreshDebounce;
-			
+
 			/**
 			 * Runs on resize debounce.
 			 * Iterates through onResizeMethods
@@ -102,7 +102,7 @@ declare module sky {
 			 * document height is calculated
 			 */
 			function recalculateItems(element) {
-				
+
 				element = element ? getElement(element) : false;
 
 				// Get the window height
@@ -505,7 +505,7 @@ declare module sky {
 							value = views[view].call(undefined, element, dimensions, scrollPosition, windowHeight, documentHeight, preferences);
 
 							// Continue if nothing changed
-							if((angular.equals(value, method.value) && preferences.cache) || !flush) {
+							if((angular.equals(value, method.value) && preferences.cache) && !flush) {
 								continue;
 							}
 							callback.call(element, value, dimensions, scrollPosition);
